@@ -1,10 +1,6 @@
 name: Build
 on:
-  pull_request:
-  push:
-    branches:
-      - 'master'
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   build:
@@ -20,46 +16,9 @@ jobs:
       - name: Compile syntax files
         run: make
 
-      - name: Save syntax files
+      - name: Upload sublime-package
         uses: actions/upload-artifact@v7
         with:
-          name: 'syntaxes.zip'
-          path: 'Prolog/*.sublime-syntax'
           if-no-files-found: error
-
-      - name: Create ST package
-        run: zip 'Prolog.sublime-package' Prolog/*
-
-      - name: Upload ST package
-        uses: actions/upload-artifact@v7
-        with:
-          path: 'Prolog.sublime-package'
-          archive: false
-          if-no-files-found: error
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - build: 'latest'
-          - build: 'stable'
-          - build: 4077  # `version: 2` support
-
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v8
-        with:
-          name: 'syntaxes.zip'
-      - run: ls -R
-
-      - name: Run syntax tests (${{ matrix.build }})
-        uses: SublimeText/syntax-test-action@v2
-        with:
-          build: ${{ matrix.build }}
-          package_name: 'Prolog'
-          package_root: 'Prolog'
+          name: 'sublime-package.zip'
+          path: 'Prolog/*'
