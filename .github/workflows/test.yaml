@@ -1,0 +1,38 @@
+name: Test
+on:
+  pull_request:
+  push:
+    branches:
+      - 'master'
+  workflow_dispatch:
+
+env:
+  PKG_NAME: 'Prolog'
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+
+  syntax-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - build: 'latest'
+          - build: 'stable'
+          - build: 4077  # `version: 2` support
+
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: 'sublime-package.zip'
+
+      - name: Run syntax tests (${{ matrix.build }})
+        uses: SublimeText/syntax-test-action@v2
+        with:
+          build: ${{ matrix.build }}
+          package_name: ${{ env.PKG_NAME }}
